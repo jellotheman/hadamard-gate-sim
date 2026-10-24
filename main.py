@@ -1,4 +1,4 @@
-# little 1-qubit hadamard sim for the terminal
+# a small program to show what a hadamard gate does to one quantum bit
 
 import math
 import random
@@ -12,7 +12,8 @@ from rich.text import Text
 
 SQRT_2 = math.sqrt(2)
 console = Console(markup=False, highlight=False)
-# amps for |0> then |1>, probs come from squaring their magnitudes
+# each state holds 2 numbers called amplitudes, one for 0 and one for 1
+# their squared sizes give the chances of measuring each result
 State = tuple[complex, complex]
 STATES = {
     "1": ("|0>", (1.0, 0.0)),
@@ -23,13 +24,14 @@ STATES = {
 
 
 def hadamard(state: State) -> State:
-    # just the gate math, caller handles normalizing + measuring
+    # add and subtract the input amplitudes, then divide each by the square root of 2
+    # this calculates the new state; measuring it happens later
     a, b = state
     return (a + b) / SQRT_2, (a - b) / SQRT_2
 
 
 def format_amplitude(value: complex) -> str:
-    # real/complex amps to 4 dp, clean up tiny bits that'd show as -0
+    # show 4 decimal places and turn tiny leftover values into 0 for display
     real = 0.0 if abs(value.real) < 0.00005 else value.real
     imag = 0.0 if abs(value.imag) < 0.00005 else value.imag
     if imag == 0:
@@ -38,7 +40,7 @@ def format_amplitude(value: complex) -> str:
 
 
 def format_state(state: State) -> str:
-    # keep the minus sign readable, dont let -0 clutter things
+    # write the state as text, keeping a negative second amplitude easy to read
     a, b = state
     if b.imag == 0 and b.real < 0:
         return f"{format_amplitude(a)}|0> - {format_amplitude(-b)}|1>"
@@ -46,21 +48,22 @@ def format_state(state: State) -> str:
 
 
 def normalize(state: State) -> State:
-    # make the 2 probs add to 1, reject inf/nan or 2 zeros
+    # resize the amplitudes so the chances add up to 1, meaning 100 percent
+    # infinity, undefined numbers and a pair of zeros cannot make a valid state
     components = [part for a in state for part in (a.real, a.imag)]
     if not all(math.isfinite(part) for part in components):
         raise ValueError("Amplitudes must be finite numbers.")
     scale = max(abs(part) for part in components)
     if scale == 0:
         raise ValueError("Both amplitudes cannot be zero.")
-    # scale 1st so huge/tiny nums dont overflow/underflow, ratio stays same
+    # resize both by the same amount first so huge or tiny numbers are easier to handle
     a, b = (amplitude / scale for amplitude in state)
     norm = math.hypot(abs(a), abs(b))
     return a / norm, b / norm
 
 
 def read_custom_state() -> State:
-    # ask for 2 amps, retry till theres a valid normalized pair
+    # ask for 2 amplitudes and try again if the numbers cannot make a valid state
     console.print("\nEnter real numbers (e.g. 0.6) or complex numbers (e.g. 0.5+0.5j).")
     console.print("Here j is the imaginary unit, with j*j = -1.", style="dim")
     console.print("The amplitudes will be normalized so |a|^2 + |b|^2 = 1.")
@@ -81,20 +84,22 @@ def read_custom_state() -> State:
 
 
 def measure(state: State, shots: int) -> tuple[int, int]:
-    # needs normalized input; fresh copy each shot, measure in 0/1 basis
-    # return (zeros, ones), input tuple stays as is
+    # the input's chances must already add up to 1 before this is called
+    # each shot is a fresh try at measuring the same prepared state as 0 or 1
+    # send back the number of zeros and ones
     if shots < 1:
         raise ValueError("The number of shots must be positive.")
-    # clamp fp rounding bits to keep prob in 0..1
+    # keep the chance between 0 and 1 in case computer rounding puts it just outside
     probability_zero = min(1.0, max(0.0, abs(state[0]) ** 2))
-    # rng gives [0, 1), below p(0) means 0, rest are 1s
-    # sum counts true as 1 so we get num of zeros
+    # pick a random number from 0 up to, but not including, 1 for each shot
+    # count a zero if it is below the chance of zero; otherwise count a one
+    # adding the true/false results counts how many times zero was picked
     zeros = sum(random.random() < probability_zero for _ in range(shots))
     return zeros, shots - zeros
 
 
 def read_shots() -> int:
-    # 1..100000 shots, blank -> 1000
+    # ask how many measurements to try, from 1 to 100000; enter alone uses 1000
     while True:
         answer = input("\nMeasurement shots [1000] (1-100000): ").strip()
         if not answer:
@@ -110,7 +115,7 @@ def read_shots() -> int:
 
 
 def probability_bar(probability: float) -> Text:
-    # 16 char bar + %, expects prob in 0..1
+    # turn a chance between 0 and 1 into a small bar and a percentage
     filled = round(probability * 16)
     bar = Text("#" * filled, style="cyan")
     bar.append("-" * (16 - filled), style="dim")
@@ -119,7 +124,7 @@ def probability_bar(probability: float) -> Text:
 
 
 def show_probabilities(initial: State, result: State) -> None:
-    # show calculated 0/1 probs before + after h
+    # compare the chances of 0 and 1 before and after applying the gate
     table = Table(box=box.SIMPLE_HEAD, header_style="bold cyan")
     table.add_column("Outcome")
     table.add_column("Before H")
@@ -132,7 +137,7 @@ def show_probabilities(initial: State, result: State) -> None:
 
 
 def run() -> None:
-    # menu -> gate math -> shots, loop till q
+    # let the user pick a state, see the calculation and try measurements until they quit
     console.print()
     console.print(Panel(
         Text("HADAMARD QUANTUM GATE SIMULATOR\n\n"
@@ -200,7 +205,7 @@ def run() -> None:
 
 
 def main() -> None:
-    # run it, ctrl+c / eof means were done
+    # start the program and exit without an error screen if input stops or ctrl+c is pressed
     try:
         run()
     except (KeyboardInterrupt, EOFError):
