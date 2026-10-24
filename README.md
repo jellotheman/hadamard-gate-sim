@@ -3,16 +3,49 @@
 A small Python CLI project that simulates the Hadamard gate on one qubit.
 Requires Python 3.10 or newer and Rich for terminal formatting.
 
-## Run
+## Set up and run
+
+Install Python 3.10 or newer if you do not already have it. Open a terminal
+(PowerShell on Windows) in this project's folder: it should contain `main.py`
+and `requirements.txt`. Run these commands one at a time:
 
 ```powershell
 python -m pip install -r requirements.txt
 python main.py
 ```
 
+The first command installs Rich, the library used to format the terminal output.
+The second starts the simulator. You only need to install the dependency once
+per Python environment; after that, use `python main.py` to run it again.
+`requirements.txt` lists the dependency and its supported version range.
+
+If `python` is not recognized on Windows, try `py` in its place in both commands.
+If you see `No module named 'rich'`, run the install command using the same
+`python` (or `py`) command you use to start the program. If Python cannot find
+`main.py`, check that your terminal is in the project folder.
+
 Rich provides colored section headings, framed calculations, probability bars,
 and tables comparing expected and observed measurement results. Color is
 automatically disabled when output is redirected to a file.
+
+## Your first simulation
+
+1. Run `python main.py` and type `1`, then press Enter to start with `|0>`.
+   The notation `|0>` means the qubit state that always gives zero when measured.
+2. Read the gate calculation and probability table. After H, both outcomes
+   have a theoretical probability of 50%.
+3. At the measurement prompt, press Enter to use 1,000 shots. A **shot** is one
+   fresh simulation of preparing the input, applying the gate, and measuring it.
+   You can also type a whole number from 1 to 100,000.
+4. Compare **Observed** (the fraction of shots that gave each result) with
+   **Expected** (the calculated probability). For example, 493 zeros and 507 ones
+   is a normal result for 1,000 shots with equal probabilities. Your counts will
+   vary; more shots generally bring the observed fractions closer to 50%.
+5. Try option `3`, the plus state: H now gives zero with 100% probability.
+   Enter `Q` at the state menu when you are finished, or press Ctrl+C to exit.
+
+This program calculates and samples quantum probabilities on your computer;
+it does not require a quantum computer or an online account.
 
 ## What is a Hadamard gate?
 
@@ -94,7 +127,41 @@ samples of the theoretical distribution, not measurements on quantum hardware.
 Displayed amplitudes are rounded to four decimal places; calculations use
 full floating-point precision.
 
-## Check
+## Reading the code
+
+All of the simulator code lives in `main.py`. A **function** is a named block
+of code that performs a task. Start with `run()` to follow the menu and display
+flow, then look at the smaller functions it calls:
+
+| Code | Purpose |
+| --- | --- |
+| `State` and `STATES` | Define the two-amplitude representation and the four menu presets. |
+| `normalize(state)` | Rescales custom amplitudes so their probabilities add to 1. |
+| `hadamard(state)` | Calculates the two output amplitudes using the H formula. |
+| `measure(state, shots)` | Uses random numbers to simulate measurement counts. |
+| `read_custom_state()` and `read_shots()` | Read keyboard input and ask again if it is invalid. |
+| `format_amplitude()`, `format_state()`, `probability_bar()`, and `show_probabilities()` | Turn numbers into readable terminal output. |
+| `run()` and `main()` | Coordinate the simulation and handle Ctrl+C or the end of input. |
+
+A state is stored as a **tuple**, a fixed sequence of values: `(a, b)`.
+The first amplitude belongs to `|0>` and the second to `|1>`. In Python,
+`state[0]` reads the first value, and `a, b = state` gives both values names.
+`abs(a) ** 2` means the squared magnitude of `a`, which gives its probability.
+
+The annotations such as `state: State` and `-> State` describe the expected
+input and return types; they do not validate or convert values themselves.
+When calling the math functions directly, supply exactly two amplitudes and
+normalize the state before treating it as a physical qubit or measuring it.
+`hadamard()` performs the gate calculation without normalizing its input.
+
+The final `if __name__ == "__main__":` block starts the program when you run
+`python main.py`. It also lets `test_main.py` import the functions without
+opening the interactive menu. That file contains automated checks;
+`requirements.txt` lists the external library the project needs.
+
+## Run the checks
+
+From the project folder, after installing the dependency, run:
 
 ```powershell
 python -m unittest -v
@@ -102,3 +169,5 @@ python -m unittest -v
 
 Tests cover all four gate transformations, normalization, applying H twice,
 complex amplitudes, measurement probabilities, input validation, and clean CLI exit.
+Each line reports a check; `OK` at the end means they all passed. These checks
+use Python's built-in `unittest` library, so no extra testing package is needed.
