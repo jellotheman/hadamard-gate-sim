@@ -159,6 +159,23 @@ The final `if __name__ == "__main__":` block starts the program when you run
 opening the interactive menu. That file contains automated checks;
 `requirements.txt` lists the external library the project needs.
 
+## Other single-qubit gates
+
+Run the separate X, Y, Z, S and T simulator with:
+
+```powershell
+python single_qubit_gates.py
+```
+
+Choose a gate, then a preset or custom state. The script shows the matrix,
+output amplitudes, before/after probabilities, inverse operation and sampled
+measurements. Enter `Q` at either menu to quit.
+
+`single_qubit_gates.py` imports the existing state presets, custom input,
+normalization (through custom input), formatting, probability display and
+measurement helpers from `main.py`. One matrix calculation handles all five
+gates. Z, S and T change phase without changing measurement probabilities.
+
 ## Run the checks
 
 From the project folder, after installing the dependency, run:

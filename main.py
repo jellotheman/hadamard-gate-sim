@@ -123,12 +123,12 @@ def probability_bar(probability: float) -> Text:
     return bar
 
 
-def show_probabilities(initial: State, result: State) -> None:
+def show_probabilities(initial: State, result: State, gate: str = "H") -> None:
     # compare the chances of 0 and 1 before and after applying the gate
     table = Table(box=box.SIMPLE_HEAD, header_style="bold cyan")
     table.add_column("Outcome")
-    table.add_column("Before H")
-    table.add_column("After H")
+    table.add_column(f"Before {gate}")
+    table.add_column(f"After {gate}")
     for bit in range(2):
         before = min(1.0, abs(initial[bit]) ** 2)
         after = min(1.0, abs(result[bit]) ** 2)
