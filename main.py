@@ -1,6 +1,6 @@
 # a small program to show what a hadamard gate does to one quantum bit
 
-# aviyansh
+# START AVIYANSH #
 import math
 import random
 
@@ -55,7 +55,10 @@ def format_state(state: State) -> str:
     return f"{format_amplitude(a)}|0> + {format_amplitude(b)}|1>"
 
 
-# sreeram
+# END AVIYANSH #
+
+
+# START SREERAM #
 def normalize(state: tuple[complex, ...]) -> tuple[complex, ...]:
     # resize the amplitudes so the chances add up to 1, meaning 100 percent
     # infinity, undefined numbers and all-zero amplitudes cannot make a valid state
@@ -78,7 +81,10 @@ def normalize(state: tuple[complex, ...]) -> tuple[complex, ...]:
     return tuple(amplitude / norm for amplitude in scaled)
 
 
-# alicia
+# END SREERAM #
+
+
+# START ALICIA #
 def read_custom_state() -> State:
     # ask for 2 amplitudes and try again if the numbers cannot make a valid state
     console.print("\nEnter real numbers (e.g. 0.6) or complex numbers (e.g. 0.5+0.5j).")
@@ -127,7 +133,10 @@ def measure(state: State, shots: int) -> tuple[int, int]:
     return zeros, shots - zeros
 
 
-# hitanshi
+# END ALICIA #
+
+
+# START HITANSHI #
 def read_shots() -> int:
     # ask how many measurements to try, from 1 to 100000; enter alone uses 1000
     while True:
@@ -179,7 +188,10 @@ def show_probabilities(initial: State, result: State, gate: str = "H") -> None:
     console.print(table)
 
 
-# vedika
+# END HITANSHI #
+
+
+# START VEDIKA #
 def run() -> None:
     # let the user pick a state, see the calculation and try measurements until they quit
     console.print()
@@ -222,8 +234,9 @@ def run() -> None:
         if choice not in STATES and choice != "5":
             console.print("  Please choose 1, 2, 3, 4, 5, or Q.", style="yellow")
             continue
+        # END VEDIKA #
 
-        # sreeram
+        # START SREERAM #
         if choice == "5":
             name, initial = "|psi>", read_custom_state()
         else:
@@ -310,3 +323,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+# END SREERAM #
