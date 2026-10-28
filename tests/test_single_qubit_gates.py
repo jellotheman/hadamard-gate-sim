@@ -31,18 +31,46 @@ class SingleQubitGateTests(unittest.TestCase):
                     self.assertStateAlmostEqual(apply_gate(state, gate), output)
 
     def test_norm_and_inverse_for_presets_and_complex_states(self):
-        states = [state for _, state in STATES.values()] + [(0.6, -0.8), (0.5+0.5j, 0.5-0.5j)]
+        states = [state for _, state in STATES.values()] + [
+            (0.6, -0.8),
+            (0.5 + 0.5j, 0.5 - 0.5j),
+        ]
         for gate in GATES:
             for state in states:
                 with self.subTest(gate=gate, state=state):
                     result = apply_gate(state, gate)
                     self.assertAlmostEqual(sum(abs(a) ** 2 for a in result), 1)
-                    self.assertStateAlmostEqual(apply_gate(result, gate, inverse=True), state)
+                    self.assertStateAlmostEqual(
+                        apply_gate(result, gate, inverse=True), state
+                    )
 
     def test_cli_all_gates_and_custom_input(self):
-        answers = ["bad", "x", "bad", "1", "4", "y", "2", "4",
-                   "z", "3", "4", "s", "4", "4", "t", "5", "3", "4", "4", "q"]
-        with patch("builtins.input", side_effect=answers), contextlib.redirect_stdout(io.StringIO()) as output:
+        answers = [
+            "bad",
+            "x",
+            "bad",
+            "1",
+            "4",
+            "y",
+            "2",
+            "4",
+            "z",
+            "3",
+            "4",
+            "s",
+            "4",
+            "4",
+            "t",
+            "5",
+            "3",
+            "4",
+            "4",
+            "q",
+        ]
+        with (
+            patch("builtins.input", side_effect=answers),
+            contextlib.redirect_stdout(io.StringIO()) as output,
+        ):
             main()
         text = output.getvalue()
         for gate in GATES:
@@ -58,7 +86,10 @@ class SingleQubitGateTests(unittest.TestCase):
     def test_quit_and_interrupted_input(self):
         for answers in (["q"], ["x", "q"], [EOFError], [KeyboardInterrupt]):
             with self.subTest(answers=answers):
-                with patch("builtins.input", side_effect=answers), contextlib.redirect_stdout(io.StringIO()) as output:
+                with (
+                    patch("builtins.input", side_effect=answers),
+                    contextlib.redirect_stdout(io.StringIO()) as output,
+                ):
                     main()
                 self.assertIn("Goodbye!", output.getvalue())
 

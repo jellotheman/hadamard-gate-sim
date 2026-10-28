@@ -24,7 +24,7 @@ class HadamardTests(unittest.TestCase):
                 self.assertStateAlmostEqual(hadamard(state), output)
 
     def test_two_gates_restore_input_and_preserve_norm(self):
-        for state in [(0.6, -0.8), (-1, 0), (0, 1), (0.5+0.5j, 0.5-0.5j)]:
+        for state in [(0.6, -0.8), (-1, 0), (0, 1), (0.5 + 0.5j, 0.5 - 0.5j)]:
             with self.subTest(state=state):
                 output = hadamard(state)
                 self.assertAlmostEqual(sum(abs(a) ** 2 for a in output), 1)
@@ -57,15 +57,17 @@ class HadamardTests(unittest.TestCase):
                     normalize(state)
 
     def test_complex_interference_and_measurement(self):
-        result = hadamard((0.5+0.5j, 0.5-0.5j))
+        result = hadamard((0.5 + 0.5j, 0.5 - 0.5j))
         s = 1 / math.sqrt(2)
         self.assertStateAlmostEqual(result, (s, s * 1j))
         with patch("main.random.random", side_effect=[0.1, 0.4, 0.6, 0.9]):
             self.assertEqual(measure(result, 4), (2, 2))
 
     def test_complex_display_preserves_phase(self):
-        self.assertEqual(format_state((0.5+0.5j, -0.5j)),
-                         "(0.5000+0.5000j)|0> + (0.0000-0.5000j)|1>")
+        self.assertEqual(
+            format_state((0.5 + 0.5j, -0.5j)),
+            "(0.5000+0.5000j)|0> + (0.0000-0.5000j)|1>",
+        )
 
     def test_custom_cli_retries_invalid_amplitudes(self):
         answers = ["5", "bad", "0", "0", "nan", "1", "3", "4", "1", "q"]
@@ -79,8 +81,21 @@ class HadamardTests(unittest.TestCase):
         self.assertIn("Output: 0.9899|0> - 0.1414|1>", text)
 
     def test_cli_reprompts_and_runs_all_states(self):
-        answers = ["bad", "1", "abc", "0", "100001", "10",
-                   "2", "", "3", "1", "4", "1", "Q"]
+        answers = [
+            "bad",
+            "1",
+            "abc",
+            "0",
+            "100001",
+            "10",
+            "2",
+            "",
+            "3",
+            "1",
+            "4",
+            "1",
+            "Q",
+        ]
         output = io.StringIO()
         with patch("builtins.input", side_effect=answers):
             with contextlib.redirect_stdout(output):

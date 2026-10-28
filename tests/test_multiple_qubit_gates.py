@@ -39,20 +39,31 @@ class BellStateTests(unittest.TestCase):
     def test_four_amplitude_normalization(self):
         for scale in (1, 1e300, 1e-300):
             with self.subTest(scale=scale):
-                self.assertStateAlmostEqual(normalize((scale, 1j * scale, -scale, -1j * scale)),
-                                           (0.5, 0.5j, -0.5, -0.5j))
-        for state in ((0, 0, 0, 0), (1, 0, float("nan"), 0), (0, 1, 0, complex(0, float("inf")))):
+                self.assertStateAlmostEqual(
+                    normalize((scale, 1j * scale, -scale, -1j * scale)),
+                    (0.5, 0.5j, -0.5, -0.5j),
+                )
+        for state in (
+            (0, 0, 0, 0),
+            (1, 0, float("nan"), 0),
+            (0, 1, 0, complex(0, float("inf"))),
+        ):
             with self.subTest(state=state), self.assertRaises(ValueError):
                 normalize(state)
 
     def test_four_amplitude_formatting(self):
-        self.assertEqual(format_state((0.5, -0.5, 0.5j, -0.5j)),
-                         "0.5000|00> - 0.5000|01> + (0.0000+0.5000j)|10> + (0.0000-0.5000j)|11>")
+        self.assertEqual(
+            format_state((0.5, -0.5, 0.5j, -0.5j)),
+            "0.5000|00> - 0.5000|01> + (0.0000+0.5000j)|10> + (0.0000-0.5000j)|11>",
+        )
 
     def test_cli_prepares_all_presets_without_measurements(self):
-        with patch("builtins.input", side_effect=["bad", "1", "2", "3", "4", "q"]), \
-             patch("main.read_shots") as shots, patch("main.show_probabilities") as probabilities, \
-             contextlib.redirect_stdout(io.StringIO()) as output:
+        with (
+            patch("builtins.input", side_effect=["bad", "1", "2", "3", "4", "q"]),
+            patch("main.read_shots") as shots,
+            patch("main.show_probabilities") as probabilities,
+            contextlib.redirect_stdout(io.StringIO()) as output,
+        ):
             main()
         text = output.getvalue()
         for _, _, bell in STATES.values():
@@ -64,8 +75,27 @@ class BellStateTests(unittest.TestCase):
         probabilities.assert_not_called()
 
     def test_custom_input_retries_invalid_values(self):
-        answers = ["5", "bad", "0", "0", "0", "0", "nan", "0", "0", "1", "1", "1j", "-1", "-1j", "q"]
-        with patch("builtins.input", side_effect=answers), contextlib.redirect_stdout(io.StringIO()) as output:
+        answers = [
+            "5",
+            "bad",
+            "0",
+            "0",
+            "0",
+            "0",
+            "nan",
+            "0",
+            "0",
+            "1",
+            "1",
+            "1j",
+            "-1",
+            "-1j",
+            "q",
+        ]
+        with (
+            patch("builtins.input", side_effect=answers),
+            contextlib.redirect_stdout(io.StringIO()) as output,
+        ):
             main()
         text = output.getvalue()
         self.assertIn("Enter numbers like", text)
@@ -76,15 +106,20 @@ class BellStateTests(unittest.TestCase):
         self.assertIn("After CNOT:", text)
 
     def test_custom_output_can_be_unentangled(self):
-        with patch("builtins.input", side_effect=["5", "1", "0", "1", "0", "q"]), \
-             contextlib.redirect_stdout(io.StringIO()) as output:
+        with (
+            patch("builtins.input", side_effect=["5", "1", "0", "1", "0", "q"]),
+            contextlib.redirect_stdout(io.StringIO()) as output,
+        ):
             main()
         self.assertIn("Entangled: no", output.getvalue())
 
     def test_clean_exit(self):
         for answers in (["q"], [EOFError], [KeyboardInterrupt]):
             with self.subTest(answers=answers):
-                with patch("builtins.input", side_effect=answers), contextlib.redirect_stdout(io.StringIO()) as output:
+                with (
+                    patch("builtins.input", side_effect=answers),
+                    contextlib.redirect_stdout(io.StringIO()) as output,
+                ):
                     main()
                 self.assertIn("Goodbye!", output.getvalue())
 
