@@ -105,7 +105,8 @@ Try these examples:
 - `a = 1`, `b = 1j`: a complex state with 50/50 probabilities both before
   and after H, but different amplitudes.
 
-This models pure states of one qubit; mixed states and multi-qubit circuits
+The Hadamard simulator models pure states of one qubit. For two-qubit Bell
+state preparation, use the separate script described below. Mixed states
 are outside the scope of this project.
 
 | Input | Output | P(0) | P(1) |
@@ -129,7 +130,7 @@ full floating-point precision.
 
 ## Reading the code
 
-All of the simulator code lives in `main.py`. A **function** is a named block
+The original Hadamard simulator lives in `main.py`. A **function** is a named block
 of code that performs a task. Start with `run()` to follow the menu and display
 flow, then look at the smaller functions it calls:
 
@@ -176,6 +177,83 @@ normalization (through custom input), formatting, probability display and
 measurement helpers from `main.py`. One matrix calculation handles all five
 gates. Z, S and T change phase without changing measurement probabilities.
 
+## Bell state preparation
+
+Run the two-qubit constructor from the project folder:
+
+```powershell
+python multiple_qubit_gates.py
+```
+
+It applies Hadamard to the first qubit, then CNOT with the first qubit as
+control and the second as target. The four basis inputs prepare:
+
+| Input | Bell state |
+| --- | --- |
+| `\|00>` | `Phi+ = (\|00> + \|11>)/sqrt(2)` |
+| `\|01>` | `Psi+ = (\|01> + \|10>)/sqrt(2)` |
+| `\|10>` | `Phi- = (\|00> - \|11>)/sqrt(2)` |
+| `\|11>` | `Psi- = (\|01> - \|10>)/sqrt(2)` |
+
+Choose `5` to enter four finite real or complex amplitudes, ordered as
+`00, 01, 10, 11`. The local input helper calls the shared `normalize()` function.
+The display shows the input, the intermediate state after H, the final state after CNOT, and
+whether the output is entangled. A custom input need not produce a Bell state.
+There are no measurement shots or probability tables in this script.
+
+The script reuses `hadamard()`, `normalize()`, `format_amplitude()` and the
+console from `main.py`, plus `read_choice()` from `single_qubit_gates.py`.
+Only `normalize()` in `main.py` was extended to handle four amplitudes.
+The original single-qubit `format_state()` and `read_custom_state()` are
+preserved; `multiple_qubit_gates.py` has its own simple four-amplitude
+versions. The initial `cnot/` implementation is not imported or used.
+
+For the presentation, explain the new file in these chunks:
+
+1. **Display:** `format_state()` attaches each amplitude to its basis label.
+   It writes the first term, then appends the other three using plus or minus.
+   The imported `format_amplitude()` still handles the number formatting.
+2. **Custom input:** `read_custom_state()` collects four complex numbers in a
+   loop, calls the imported `normalize()`, and retries invalid input.
+3. **Gate calculations:** `hadamard_first()` calls the existing `hadamard()`
+   on the pairs `00, 10` and `01, 11`. Each pair differs only in the first
+   qubit. `cnot()` then exchanges the `10` and `11` amplitudes.
+4. **Simulation:** `run()` gets the user's choice through the imported
+   `read_choice()`, applies H followed by CNOT, and prints each step.
+   For amplitudes `(a, b, c, d)`, a pure state is entangled when `a*d - b*c`
+   is nonzero. The code uses a small tolerance for floating-point rounding.
+5. **Startup:** `main()` runs the menu and handles Ctrl+C or end-of-input.
+
+## Function counts and presentation split
+
+Count definitions in the three application files only. Imported functions
+are counted where they are defined, not again in each importing file.
+Tests and the unused initial `cnot/` implementation are excluded.
+
+| File | Function definitions |
+| --- | ---: |
+| `main.py` | 11 |
+| `single_qubit_gates.py` | 4 |
+| `multiple_qubit_gates.py` | 6 |
+| Total with `main.py` | 21 |
+| Total without `main.py` | 10 |
+
+Keep the existing five-person allocation of `main.py`. For the other two
+files, the following logical split gives two people the main technical work
+and each remaining person two functions:
+
+| Presenter | Functions | Count | Topic |
+| --- | --- | ---: | --- |
+| 1 | `single_qubit_gates.apply_gate`, `multiple_qubit_gates.hadamard_first`, `multiple_qubit_gates.cnot` | 3 | Gate matrices, inverse, H on amplitude pairs, controlled flip |
+| 2 | `multiple_qubit_gates.run` | 1 | Construct all four Bell states, connect helpers and explain the entanglement check |
+| 3 | `single_qubit_gates.read_choice`, `multiple_qubit_gates.read_custom_state` | 2 | Menus, four-amplitude input and validation |
+| 4 | `single_qubit_gates.run`, `single_qubit_gates.main` | 2 | Single-qubit simulation flow, startup and clean exit |
+| 5 | `multiple_qubit_gates.format_state`, `multiple_qubit_gates.main` | 2 | Two-qubit state display, startup and clean exit |
+
+The two `main()` functions and two `run()` functions are separate definitions,
+even though they share names. The table assigns the 10 definitions outside
+`main.py`; the 11 definitions in `main.py` retain their existing allocation.
+
 ## Run the checks
 
 From the project folder, after installing the dependency, run:
@@ -186,5 +264,7 @@ python -m unittest -v
 
 Tests cover all four gate transformations, normalization, applying H twice,
 complex amplitudes, measurement probabilities, input validation, and clean CLI exit.
+They also cover X/Y/Z/S/T, all four Bell states, four-amplitude custom input,
+and two-qubit gate reversal.
 Each line reports a check; `OK` at the end means they all passed. These checks
 use Python's built-in `unittest` library, so no extra testing package is needed.

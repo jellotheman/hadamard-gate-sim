@@ -23,6 +23,7 @@ GATES = {
 }
 
 
+# Gate calculation
 def apply_gate(state: State, gate: str, inverse: bool = False) -> State:
     matrix = GATES[gate]
     if inverse:
@@ -33,6 +34,7 @@ def apply_gate(state: State, gate: str, inverse: bool = False) -> State:
     return p * a + q * b, r * a + s * b
 
 
+# Shared menu input (also used by multiple_qubit_gates.py)
 def read_choice(prompt: str, options: dict) -> str:
     while True:
         console.print(
@@ -44,6 +46,7 @@ def read_choice(prompt: str, options: dict) -> str:
         console.print("Please choose one of the listed options.", style="yellow")
 
 
+# Simulation flow
 def run() -> None:
     console.print("\nSINGLE-QUBIT GATES: X, Y, Z, S, T", style="bold cyan")
     while True:
@@ -93,6 +96,7 @@ def run() -> None:
             )
 
 
+# Program entry and clean exit
 def main() -> None:
     try:
         run()
