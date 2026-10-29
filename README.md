@@ -1,80 +1,70 @@
-# Hadamard Quantum Gate Simulator
+# Quantum Gate Simulator
 
-A small Python CLI project that simulates the Hadamard gate on one qubit. Requires
-Python 3.10 or newer and Rich for terminal formatting.
+A Python terminal program for exploring the H, X, Y, Z, S, and T single-qubit gates and
+a two-qubit Bell circuit. All application code lives in `main.py`, using functions and
+shared data definitions. Requires Python 3.10 or newer and Rich for terminal output.
 
 ## Set up and run
 
-Install Python 3.10 or newer if you do not already have it. Open a terminal (PowerShell
-on Windows) in this project's folder: it should contain `main.py` and
-`requirements.txt`. Run these commands one at a time:
+Open a terminal in the project folder and run:
 
 ```powershell
 python -m pip install -r requirements.txt
 python main.py
 ```
 
-The first command installs Rich, the library used to format the terminal output. The
-second starts the simulator. You only need to install the dependency once per Python
-environment; after that, use `python main.py` to run it again. `requirements.txt` lists
-the dependency and its supported version range.
+The first command installs Rich; it only needs to run once per Python environment. After
+that, start the simulator with `python main.py`.
 
-If `python` is not recognized on Windows, try `py` in its place in both commands. If you
-see `No module named 'rich'`, run the install command using the same `python` (or `py`)
-command you use to start the program. If Python cannot find `main.py`, check that your
-terminal is in the project folder.
+On Windows, use `py` instead of `python` if necessary. If you see
+`No module named 'rich'`, install the requirements with the same Python command you use
+to start the program. If Python cannot find `main.py`, check your current folder.
 
-Rich provides colored section headings, framed calculations, probability bars, and
-tables comparing expected and observed measurement results. Color is automatically
-disabled when output is redirected to a file.
+The simulator runs locally without a quantum computer or online account. Rich formats
+the menus, calculation panels, and result tables; color is disabled for redirected
+output.
 
 ## Your first simulation
 
-1. Run `python main.py` and type `1`, then press Enter to start with `|0>`. The notation
-   `|0>` means the qubit state that always gives zero when measured.
-2. Read the gate calculation and probability table. After H, both outcomes have a
-   theoretical probability of 50%.
-3. At the measurement prompt, press Enter to use 1,000 shots. A **shot** is one fresh
-   simulation of preparing the input, applying the gate, and measuring it. You can also
-   type a whole number from 1 to 100,000.
-4. Compare **Observed** (the fraction of shots that gave each result) with **Expected**
-   (the calculated probability). For example, 493 zeros and 507 ones is a normal result
-   for 1,000 shots with equal probabilities. Your counts will vary; more shots generally
-   bring the observed fractions closer to 50%.
-5. Try option `3`, the plus state: H now gives zero with 100% probability. Enter `Q` at
-   the state menu when you are finished, or press Ctrl+C to exit.
+1. Run `python main.py`. At **Gate or circuit**, enter `H` for Hadamard.
+2. At **Starting state**, enter `1` for `|0>`, the state that always measures as zero.
+3. At **Measurement shots**, press Enter for 1,000 trials, or enter a whole number from
+   1 to 100,000. Each shot prepares the input again, applies the gate, and measures.
+4. Read the gate matrix, output amplitudes, and inverse check. The result table shows
+   theoretical probabilities **Before H** and **After H**, the sampled **Count**, and
+   the **Observed** percentage. For this input, both after-H probabilities are 50%.
+5. The gate menu returns. Try `H`, then starting state `3` (`|+>`): zero is now certain.
+6. Enter `Q` at either menu to quit. Ctrl+C or end-of-input also exits cleanly.
 
-This program calculates and samples quantum probabilities on your computer; it does not
-require a quantum computer or an online account.
+Random counts vary between runs. With equal probabilities, 493 zeros and 507 ones is one
+possible result from 1,000 shots. More shots generally give a closer approximation to
+the theoretical distribution, but do not guarantee a closer result on every run.
 
-## What is a Hadamard gate?
+## Gates and state representation
 
-A quantum gate is a reversible operation on a qubit's amplitudes. The Hadamard gate,
-written H, turns a definite zero or one into an equal superposition: measuring either
-output gives zero or one with equal probability.
+| Menu key | Operation                                                              |
+| -------- | ---------------------------------------------------------------------- |
+| `H`      | Hadamard: combines amplitudes by addition and subtraction              |
+| `X`      | Bit flip: exchanges the zero and one amplitudes                        |
+| `Y`      | Pauli Y: exchanges amplitudes and multiplies them by imaginary factors |
+| `Z`      | Phase flip: negates the one amplitude                                  |
+| `S`      | Phase gate: multiplies the one amplitude by `j`                        |
+| `T`      | Phase gate: multiplies the one amplitude by `(1 + j)/sqrt(2)`          |
+| `B`      | Bell circuit: H on the first qubit, followed by CNOT                   |
 
-The outputs differ in their relative sign: zero becomes the plus state, while one
-becomes the minus state. Quantum amplitudes behave like waves: they can reinforce or
-cancel each other when another gate combines them. That is why the sign matters even
-when the measurement probabilities match.
+A single-qubit pure state is written `a|0> + b|1>` and stored as the tuple `(a, b)`. The
+amplitudes may be complex. Their squared magnitudes give measurement probabilities:
+`P(0) = |a|^2` and `P(1) = |b|^2`, which total one for a normalized state. For an
+amplitude `x + yj`, the squared magnitude is `x*x + y*y`.
 
-For example, start with zero and apply H twice without measuring in between. The first H
-creates equal amplitudes. The second adds them for the zero output and subtracts them
-for the one output. The one amplitude cancels, so the result is definitely zero again.
-This is interference. Measurement happens separately and produces one classical outcome,
-zero or one.
+Every single-qubit gate uses the same matrix calculation:
 
-H does not always produce 50/50 probabilities: it depends on the input state. It is
-commonly used to prepare superpositions in quantum algorithms.
+```text
+[ p  q ] [ a ] = [ p*a + q*b ]
+[ r  s ] [ b ]   [ r*a + s*b ]
+```
 
-Choose one of four example states or enter custom amplitudes, inspect the gate
-calculation and probability bars, then enter a measurement count (or press Enter for
-1,000 shots). The menu returns after each simulation. Enter `Q` at the state menu to
-quit; Ctrl+C also exits cleanly.
-
-## How it works
-
-For a normalized input `a|0> + b|1>`, the Hadamard gate produces:
+For H, this becomes:
 
 ```text
 H = 1/sqrt(2) * [ 1   1 ]
@@ -83,217 +73,137 @@ H = 1/sqrt(2) * [ 1   1 ]
 H(a, b) = ((a + b)/sqrt(2), (a - b)/sqrt(2))
 ```
 
-The probability of measuring each basis state is the squared magnitude of its amplitude
-(the Born rule): `P(0) = |a|^2`, `P(1) = |b|^2`. For a complex amplitude `x + yj`, its
-squared magnitude is `x*x + y*y`. The CLI shows probabilities before and after H, then
-applies H a second time to demonstrate that the original state is recovered before
-measurement.
+| Starting state key | Input | Output after H | P(0) | P(1) |
+| ------------------ | ----- | -------------- | ---- | ---- |
+| `1`                | Zero  | Plus           | 50%  | 50%  |
+| `2`                | One   | Minus          | 50%  | 50%  |
+| `3`                | Plus  | Zero           | 100% | 0%   |
+| `4`                | Minus | One            | 0%   | 100% |
 
-## Custom states
+Here `|+> = (|0> + |1>)/sqrt(2)` and `|-> = (|0> - |1>)/sqrt(2)`. Their measurement
+probabilities are identical, but the relative minus sign changes how amplitudes
+reinforce or cancel when another gate is applied. This is interference.
 
-Choose option `5` and enter any nonzero pair of finite real or complex amplitudes. These
-describe an arbitrary pure single-qubit state. The simulator divides both amplitudes by
-`sqrt(|a|^2 + |b|^2)` so the probabilities add to 1. Zero pairs and invalid numbers are
-rejected. Python uses `j` for the imaginary unit; enter numeric values, not expressions
-such as `1/sqrt(2)`.
+Applying H twice restores the input. The simulator demonstrates reversal for every
+single-qubit gate using its inverse matrix, the conjugate transpose. This calculation
+acts on the unmeasured output state. Sampling uses fresh copies of that state; it does
+not repeatedly measure one collapsed qubit. Z, S, and T affect phase while preserving
+the computational-basis measurement probabilities.
 
-Try these examples:
+## Custom input
 
-- `a = 3`, `b = 4`: normalized to `(0.6, 0.8)`. After H, the probabilities are 98% for
-  zero and 2% for one.
-- `a = 1`, `b = -1`: normalized to the minus state. After H, one is certain.
-- `a = 1`, `b = 1j`: a complex state with 50/50 probabilities both before and after H,
-  but different amplitudes.
+Choose `5` at the starting-state menu. Enter two amplitudes for a single-qubit gate, or
+four for the Bell circuit. Use finite real or complex numeric values such as `0.6`,
+`-0.8`, or `0.5+0.5j`. Python uses `j` for the imaginary unit, with `j*j = -1`.
+Expressions such as `1/sqrt(2)` are not accepted; enter their numeric values instead.
 
-The Hadamard simulator models pure states of one qubit. For two-qubit Bell state
-preparation, use the separate script described below. Mixed states are outside the scope
-of this project.
+The simulator normalizes the amplitudes so their squared magnitudes total one. It
+rescales components before calculating their norm to support very large and very small
+inputs. All-zero inputs, infinities, undefined values, and invalid numeric text cause a
+retry. Amplitudes are rounded to four decimal places for display only.
 
-| Input | Output | P(0) | P(1) |
-| ----- | ------ | ---- | ---- |
-| Zero  | Plus   | 50%  | 50%  |
-| One   | Minus  | 50%  | 50%  |
-| Plus  | Zero   | 100% | 0%   |
-| Minus | One    | 0%   | 100% |
+Examples to try with H:
 
-Here `|+> = (|0> + |1>)/sqrt(2)` and `|-> = (|0> - |1>)/sqrt(2)`. The relative minus
-sign matters even though `|+>` and `|->` have identical measurement probabilities:
-applying H maps them to different basis states. Applying H twice restores the original
-state.
+- `3`, `4`: normalized to `(0.6, 0.8)`, giving output probabilities of 98% and 2%.
+- `1`, `-1`: normalized to the minus state, giving one with certainty after H.
+- `1`, `1j`: gives 50/50 probabilities before and after H, with different amplitudes.
 
-Each measurement shot independently prepares the chosen input and applies H. Measuring
-the same qubit repeatedly without preparing it again would instead leave it in the first
-measured basis state. Counts here are classical random samples of the theoretical
-distribution, not measurements on quantum hardware. Displayed amplitudes are rounded to
-four decimal places; calculations use full floating-point precision.
+## Bell circuit
+
+Choose `B` at the gate menu. The circuit applies H to the first qubit, then CNOT with
+the first qubit as control and the second as target:
+
+```text
+q0: --H--o--
+q1: -----X--
+```
+
+Two-qubit states use four amplitudes, ordered as `00, 01, 10, 11`. H combines the
+amplitude pairs `00, 10` and `01, 11`. CNOT then exchanges the `10` and `11` amplitudes.
+The four preset inputs produce:
+
+| Starting state key | Input   | Bell state                       |
+| ------------------ | ------- | -------------------------------- |
+| `1`                | `\|00>` | `Phi+ = (\|00> + \|11>)/sqrt(2)` |
+| `2`                | `\|01>` | `Psi+ = (\|01> + \|10>)/sqrt(2)` |
+| `3`                | `\|10>` | `Phi- = (\|00> - \|11>)/sqrt(2)` |
+| `4`                | `\|11>` | `Psi- = (\|01> - \|10>)/sqrt(2)` |
+
+The output shows the input, the intermediate state after H, the final state after CNOT,
+and whether it is entangled. For a pure state `(a, b, c, d)`, separability means
+`a*d = b*c`; the program reports entanglement when `abs(a*d - b*c) > 1e-9`, using a
+small tolerance for floating-point rounding. Custom input need not produce a Bell state
+or an entangled output. This circuit does not request measurement shots. The simulator
+models pure states; mixed states are outside its scope.
 
 ## Reading the code
 
-The original Hadamard simulator lives in `main.py`. A **function** is a named block of
-code that performs a task. Start with `run()` to follow the menu and display flow, then
-look at the smaller functions it calls:
+`main.py` contains 14 function definitions. Start with `run()` to follow how they work
+together. The shared state labels let input and formatting work for both state sizes.
+Gate descriptions, matrices, and explanations are stored together in `GATES`.
 
-| Code                                                                                    | Purpose                                                            |
-| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `State` and `STATES`                                                                    | Define the two-amplitude representation and the four menu presets. |
-| `normalize(state)`                                                                      | Rescales custom amplitudes so their probabilities add to 1.        |
-| `hadamard(state)`                                                                       | Calculates the two output amplitudes using the H formula.          |
-| `measure(state, shots)`                                                                 | Uses random numbers to simulate measurement counts.                |
-| `read_custom_state()` and `read_shots()`                                                | Read keyboard input and ask again if it is invalid.                |
-| `format_amplitude()`, `format_state()`, `probability_bar()`, and `show_probabilities()` | Turn numbers into readable terminal output.                        |
-| `run()` and `main()`                                                                    | Coordinate the simulation and handle Ctrl+C or the end of input.   |
+| Function                                            | Purpose                                                              |
+| --------------------------------------------------- | -------------------------------------------------------------------- |
+| `apply_gate(state, gate, inverse=False)`            | Apply a single-qubit gate or its inverse.                            |
+| `format_amplitude(value)`                           | Format one real or complex amplitude.                                |
+| `format_state(state, labels)`                       | Attach amplitudes to their basis labels with readable signs.         |
+| `normalize(state)`                                  | Validate and normalize two or four amplitudes.                       |
+| `apply_bell_circuit(state)`                         | Return the intermediate and final states of the H-then-CNOT circuit. |
+| `read_choice(prompt, options)`                      | Build a menu and validate the selected key.                          |
+| `read_custom_state(labels)`                         | Collect and normalize custom amplitudes, retrying invalid input.     |
+| `read_state(presets, labels)`                       | Select a preset, delegate custom input, or return `None` for Quit.   |
+| `measure(state, shots)`                             | Return sampled counts for zero and one.                              |
+| `read_shots()`                                      | Read a valid shot count or use the default.                          |
+| `show_single_result(initial, result, gate, counts)` | Display the gate calculation, reversal, and probability/count table. |
+| `show_bell_result(after_h, result, bell_name)`      | Display both circuit steps and the entanglement check.               |
+| `run()`                                             | Coordinate the menus and simulation paths.                           |
+| `main()`                                            | Start the program and handle interrupted input cleanly.              |
 
-A state is stored as a **tuple**, a fixed sequence of values: `(a, b)`. The first
-amplitude belongs to `|0>` and the second to `|1>`. In Python, `state[0]` reads the
-first value, and `a, b = state` gives both values names. `abs(a) ** 2` means the squared
-magnitude of `a`, which gives its probability.
+Type aliases describe the data: `State` is a tuple of amplitudes, `Matrix` is a 2-by-2
+gate matrix, `Gate` holds a description/matrix/explanation, and `Preset` holds an input
+name/amplitudes/output description. Type annotations document these shapes; they do not
+perform runtime validation. Direct callers of `apply_gate()` and `measure()` should
+supply two amplitudes, and `apply_bell_circuit()` expects four. Prepare normalized
+states before interpreting results as physical probabilities or sampling them.
 
-The annotations such as `state: State` and `-> State` describe the expected input and
-return types; they do not validate or convert values themselves. When calling the math
-functions directly, supply exactly two amplitudes and normalize the state before
-treating it as a physical qubit or measuring it. `hadamard()` performs the gate
-calculation without normalizing its input.
+The people markers retain the current contiguous assignments:
 
-The final `if __name__ == "__main__":` block starts the program when you run
-`python main.py`. It also lets `tests/test_main.py` import the functions without opening
-the interactive menu. That file contains automated checks; `requirements.txt` lists the
-external library the project needs.
+| Person    | Assigned section                                                  | Functions |
+| --------- | ----------------------------------------------------------------- | --------: |
+| Aviyansh  | Imports, types, gate definitions, and state presets               |         0 |
+| Alicia    | Gate application, formatting, normalization, and Bell calculation |         5 |
+| Hitanshi  | Menu creation, custom input, and state selection                  |         3 |
+| Vedika    | Measurement, shot input, and single-qubit results                 |         3 |
+| Sreeram   | Bell results, simulation coordination, and startup                |         3 |
+| **Total** |                                                                   |    **14** |
 
-## Other single-qubit gates
+The `if __name__ == "__main__":` block starts the interactive program when executed
+directly. Importing `main` from the tests does not start the menus.
 
-Run the separate X, Y, Z, S and T simulator with:
+## Tests and formatting
 
-```powershell
-python single_qubit_gates.py
-```
-
-Choose a gate, then a preset or custom state. The script shows the matrix, output
-amplitudes, before/after probabilities, inverse operation and sampled measurements.
-Enter `Q` at either menu to quit.
-
-`single_qubit_gates.py` imports the existing state presets, custom input, normalization
-(through custom input), formatting, probability display and measurement helpers from
-`main.py`. One matrix calculation handles all five gates. Z, S and T change phase
-without changing measurement probabilities.
-
-## Bell state preparation
-
-Run the two-qubit constructor from the project folder:
-
-```powershell
-python multiple_qubit_gates.py
-```
-
-It applies Hadamard to the first qubit, then CNOT with the first qubit as control and
-the second as target. The four basis inputs prepare:
-
-| Input   | Bell state                       |
-| ------- | -------------------------------- |
-| `\|00>` | `Phi+ = (\|00> + \|11>)/sqrt(2)` |
-| `\|01>` | `Psi+ = (\|01> + \|10>)/sqrt(2)` |
-| `\|10>` | `Phi- = (\|00> - \|11>)/sqrt(2)` |
-| `\|11>` | `Psi- = (\|01> - \|10>)/sqrt(2)` |
-
-Choose `5` to enter four finite real or complex amplitudes, ordered as `00, 01, 10, 11`.
-The local input helper calls the shared `normalize()` function. The display shows the
-input, the intermediate state after H, the final state after CNOT, and whether the
-output is entangled. A custom input need not produce a Bell state. There are no
-measurement shots or probability tables in this script.
-
-The script reuses `hadamard()`, `normalize()`, `format_amplitude()` and the console from
-`main.py`, plus `read_choice()` from `single_qubit_gates.py`. Only `normalize()` in
-`main.py` was extended to handle four amplitudes. The original single-qubit
-`format_state()` and `read_custom_state()` are preserved; `multiple_qubit_gates.py` has
-its own simple four-amplitude versions. The initial `cnot/` implementation is not
-imported or used.
-
-For the presentation, explain the new file in these chunks:
-
-1. **Display:** `format_state()` attaches each amplitude to its basis label. It writes
-   the first term, then appends the other three using plus or minus. The imported
-   `format_amplitude()` still handles the number formatting.
-2. **Custom input:** `read_custom_state()` collects four complex numbers in a loop,
-   calls the imported `normalize()`, and retries invalid input.
-3. **Gate calculations:** `hadamard_first()` calls the existing `hadamard()` on the
-   pairs `00, 10` and `01, 11`. Each pair differs only in the first qubit. `cnot()` then
-   exchanges the `10` and `11` amplitudes.
-4. **Simulation:** `run()` gets the user's choice through the imported `read_choice()`,
-   applies H followed by CNOT, and prints each step. For amplitudes `(a, b, c, d)`, a
-   pure state is entangled when `a*d - b*c` is nonzero. The code uses a small tolerance
-   for floating-point rounding.
-5. **Startup:** `main()` runs the menu and handles Ctrl+C or end-of-input.
-
-## Function counts and presentation split
-
-Count definitions in the three application files only. Imported functions are counted
-where they are defined, not again in each importing file. Tests and the unused initial
-`cnot/` implementation are excluded.
-
-| File                      | Function definitions |
-| ------------------------- | -------------------: |
-| `main.py`                 |                   11 |
-| `single_qubit_gates.py`   |                    4 |
-| `multiple_qubit_gates.py` |                    6 |
-| Total with `main.py`      |                   21 |
-| Total without `main.py`   |                   10 |
-
-Keep the existing five-person allocation of `main.py`. For the other two files, the
-following logical split gives two people the main technical work and each remaining
-person two functions:
-
-| Presenter | Functions                                                                                           | Count | Topic                                                                              |
-| --------- | --------------------------------------------------------------------------------------------------- | ----: | ---------------------------------------------------------------------------------- |
-| 1         | `single_qubit_gates.apply_gate`, `multiple_qubit_gates.hadamard_first`, `multiple_qubit_gates.cnot` |     3 | Gate matrices, inverse, H on amplitude pairs, controlled flip                      |
-| 2         | `multiple_qubit_gates.run`                                                                          |     1 | Construct all four Bell states, connect helpers and explain the entanglement check |
-| 3         | `single_qubit_gates.read_choice`, `multiple_qubit_gates.read_custom_state`                          |     2 | Menus, four-amplitude input and validation                                         |
-| 4         | `single_qubit_gates.run`, `single_qubit_gates.main`                                                 |     2 | Single-qubit simulation flow, startup and clean exit                               |
-| 5         | `multiple_qubit_gates.format_state`, `multiple_qubit_gates.main`                                    |     2 | Two-qubit state display, startup and clean exit                                    |
-
-The two `main()` functions and two `run()` functions are separate definitions, even
-though they share names. The table assigns the 10 definitions outside `main.py`; the 11
-definitions in `main.py` retain their existing allocation.
-
-## Run the checks
-
-From the project folder, after installing the dependency, run:
+Run the 15 automated tests in `tests/test_main.py`:
 
 ```powershell
 python -m unittest discover -s tests -v
 ```
 
-Tests cover all four gate transformations, normalization, applying H twice, complex
-amplitudes, measurement probabilities, input validation, and clean CLI exit. They also
-cover X/Y/Z/S/T, all four Bell states, four-amplitude custom input, and two-qubit gate
-reversal. Each line reports a check; `OK` at the end means they all passed. These checks
-use Python's built-in `unittest` library, so no extra testing package is needed.
+They cover all six single-qubit gates, inverse restoration, interference, the four Bell
+presets and intermediate states, complex inputs, normalization at extreme scales,
+measurement sampling, formatting, input retries, clean exits, and Windows terminal
+encoding. Tests use Python's built-in `unittest` library. VS Code's Test Explorer is
+configured to discover the `tests/` folder.
 
-All test files live in `tests/`. VS Code's Test Explorer is configured to discover that
-folder. Running `python -m unittest -v` from the project root also works.
-
-## Formatting
-
-Project settings in `.vscode/settings.json` select Black for Python and Prettier for
-other supported file types, with formatting on save and paste. These settings apply only
-to this project. The extension recommendations include both formatters.
-
-Black's settings live in `pyproject.toml`. Prettier's settings live in
-`.prettierrc.json`; `.prettierignore` keeps it away from Python files, generated files,
-and the unused `cnot/` reference folder. Black also respects the project's Git ignore
-rules, so that reference folder is not formatted or tested.
-
-To format the whole project from the terminal:
+Install the development requirements to use the configured Black version:
 
 ```powershell
 python -m pip install -r requirements-dev.txt
-python -m black .
-npx --yes prettier@3.7.4 --write .
-```
-
-To check formatting without changing files:
-
-```powershell
 python -m black --check .
 npx --yes prettier@3.7.4 --check .
 ```
 
-Black preserves the blank lines between logical steps in the Python code.
+To apply formatting, use `python -m black .` and `npx --yes prettier@3.7.4 --write .`.
+Project settings select Black for Python and Prettier for other supported files, with
+formatting on save and paste. Black's settings are in `pyproject.toml`; Prettier's
+settings are in `.prettierrc.json`. The ignored local `cnot/` reference folder is
+outside the application and test suite.
